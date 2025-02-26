@@ -18,6 +18,7 @@ public class Candidature {
 
     // Informations sur le voyage
     private String lieu;
+    private String periode; // Utilisé dans le contrôleur
     private Date dateDepart;
     private Date dateRetour;
 
@@ -28,8 +29,8 @@ public class Candidature {
     // Conditions pour les anciens enseignants
     private String carteEmbarquement; // Justificatif du précédent voyage
     private String destinationPrecedente; // Destination du précédent voyage
-    private Date dateDepartPrecedent; // Date de départ du précédent voyage
-    private Date dateRetourPrecedent; // Date de retour du précédent voyage
+    private String dateDepartPrecedent; // Date de départ du précédent voyage
+    private String dateRetourPrecedent; // Date de retour du précédent voyage
     private String rapportVoyagePrecedent; // Rapport du dernier voyage d'étude
 
     @ManyToOne
