@@ -1,60 +1,82 @@
 package com.uasz.gestion_voyages.Voyage.service;
 
+import com.uasz.gestion_voyages.Utilisateur.dto.EnseignantDTO;
 import com.uasz.gestion_voyages.Utilisateur.modele.Enseignant;
+import com.uasz.gestion_voyages.Utilisateur.repository.EnseignantRepository;
+import com.uasz.gestion_voyages.Utilisateur.service.EnseignantService;
 import com.uasz.gestion_voyages.Voyage.modele.Candidature;
 import com.uasz.gestion_voyages.Voyage.repository.CandidatureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
 @Service
 public class CandidatureService {
 
     @Autowired
+    private EnseignantRepository enseignantRepository;
+
+    @Autowired
     private CandidatureRepository candidatureRepository;
 
+    @Autowired
+    private EnseignantService enseignantService;
+
+    // Lister toutes les candidatures
     public List<Candidature> listerCandidatures() {
         return candidatureRepository.findAll();
     }
 
-    public Candidature ajouterCandidature(Candidature candidature) {
-        // Valider les conditions avant de soumettre la candidature
-        if (validerConditionsCandidature(candidature)) {
-            return candidatureRepository.save(candidature);
-        } else {
-            throw new IllegalArgumentException("Les conditions pour soumettre une candidature ne sont pas remplies.");
+    // Soumettre une candidature pour un ancien enseignant
+    public Candidature soumettreAncienCandidature(Long enseignantId, Candidature candidature) {
+        Enseignant enseignant = enseignantRepository.findById(enseignantId)
+                .orElseThrow(() -> new IllegalArgumentException("Enseignant non trouvé"));
+
+        EnseignantDTO enseignantDTO = enseignantService.obtenirEnseignant(enseignantId);
+
+        if (!enseignantDTO.aDejaVoyage()) {
+            throw new IllegalArgumentException("L'enseignant n'a pas encore voyagé.");
         }
-    }
 
-    public Candidature obtenirCandidature(Long id) {
-        return candidatureRepository.findById(id).orElseThrow();
-    }
-
-    public Candidature modifierCandidature(Long id, Candidature candidature) {
-        candidature.setId(id);
+        candidature.setEnseignant(enseignant);
         return candidatureRepository.save(candidature);
     }
 
+    // Soumettre une candidature pour un nouveau enseignant
+    public Candidature soumettreNouveauCandidature(Long enseignantId, Candidature candidature) {
+        Enseignant enseignant = enseignantRepository.findById(enseignantId)
+                .orElseThrow(() -> new IllegalArgumentException("Enseignant non trouvé"));
+
+        EnseignantDTO enseignantDTO = enseignantService.obtenirEnseignant(enseignantId);
+
+        if (enseignantDTO.aDejaVoyage()) {
+            throw new IllegalArgumentException("L'enseignant a déjà voyagé.");
+        }
+
+        candidature.setEnseignant(enseignant);
+        return candidatureRepository.save(candidature);
+    }
+
+    // Obtenir une candidature par son ID
+    public Candidature obtenirCandidature(Long id) {
+        return candidatureRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Candidature non trouvée."));
+    }
+
+    // Modifier une candidature
+    public Candidature modifierCandidature(Long id, Candidature candidature) {
+        Candidature existingCandidature = obtenirCandidature(id);
+        existingCandidature.setLieu(candidature.getLieu());
+        existingCandidature.setPeriode(candidature.getPeriode());
+        existingCandidature.setDestinationPrecedente(candidature.getDestinationPrecedente());
+        existingCandidature.setDateDepartPrecedent(candidature.getDateDepartPrecedent());
+        existingCandidature.setDateRetourPrecedent(candidature.getDateRetourPrecedent());
+        return candidatureRepository.save(existingCandidature);
+    }
+
+    // Supprimer une candidature
     public void supprimerCandidature(Long id) {
         candidatureRepository.deleteById(id);
     }
-
-    private boolean validerConditionsCandidature(Candidature candidature) {
-        Enseignant enseignant = candidature.getEnseignant();
-
-        if (enseignant.aDejaVoyage()) {  // ✅ Vérifie si l'enseignant a déjà voyagé
-            // Enseignant ancien → Vérifier les justificatifs du dernier voyage
-            return candidature.getCarteEmbarquement() != null &&
-                    candidature.getDestinationPrecedente() != null &&
-                    candidature.getDateDepartPrecedent() != null &&
-                    candidature.getDateRetourPrecedent() != null &&
-                    candidature.getRapportVoyagePrecedent() != null;
-        } else {
-            // Enseignant nouveau → Il doit être titulaire avec un arrêté de titularisation
-            return candidature.isTitulaire() && candidature.getArreteTitularisation() != null;
-        }
-    }
-
 }

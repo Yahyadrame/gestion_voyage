@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -31,17 +32,17 @@ public class CandidatureController {
     @PostMapping("/ancien")
     public ResponseEntity<?> soumettreAncienCandidature(
             @RequestParam("enseignantId") Long enseignantId,
-            @RequestParam("email") String email,
+
             @RequestParam("lieu") String lieu,
             @RequestParam("periode") String periode,
             @RequestParam("carteEmbarquement") MultipartFile carteEmbarquement,
             @RequestParam("destinationPrecedente") String destinationPrecedente,
-            @RequestParam("dateDepartPrecedent") String dateDepartPrecedent,
-            @RequestParam("dateRetourPrecedent") String dateRetourPrecedent,
+            @RequestParam("dateDepartPrecedent") Date dateDepartPrecedent,
+            @RequestParam("dateRetourPrecedent") Date dateRetourPrecedent,
             @RequestParam("rapportVoyagePrecedent") MultipartFile rapportVoyagePrecedent) {
         try {
             Candidature candidature = new Candidature();
-            candidature.setEmail(email);
+
             candidature.setLieu(lieu);
             candidature.setPeriode(periode);
             candidature.setDestinationPrecedente(destinationPrecedente);
@@ -72,7 +73,7 @@ public class CandidatureController {
             @RequestParam("arreteTitularisation") MultipartFile arreteTitularisation) {
         try {
             Candidature candidature = new Candidature();
-            candidature.setEmail(email);
+
             candidature.setLieu(lieu);
             candidature.setPeriode(periode);
 

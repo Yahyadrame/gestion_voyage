@@ -24,6 +24,7 @@ public class EnseignantService {
                 .map(utilisateurMapper::toDto)
                 .collect(Collectors.toList());
     }
+    // Obtenir un enseignant par son ID
 
     public EnseignantDTO ajouterEnseignant(Enseignant enseignant) {
         return utilisateurMapper.toDto(enseignantRepository.save(enseignant));
