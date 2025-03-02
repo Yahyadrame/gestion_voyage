@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(FOR_DRC).hasRole("DRC")
                         .requestMatchers(FOR_DRH).hasRole("DRH")
                         .requestMatchers(FOR_DFC).hasRole("DFC")
+                        .requestMatchers("/api/auth/creer-utilisateur").hasRole("DRC")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
