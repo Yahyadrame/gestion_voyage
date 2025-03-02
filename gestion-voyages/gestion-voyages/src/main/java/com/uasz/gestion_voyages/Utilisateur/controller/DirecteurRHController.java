@@ -21,10 +21,7 @@ public class DirecteurRHController {
         return ResponseEntity.ok(directeurRHService.listerDirecteursRH());
     }
 
-    @PostMapping
-    public ResponseEntity<DirecteurRHDTO> ajouterDirecteurRH(@RequestBody DirecteurRH directeurRH) {
-        return ResponseEntity.ok(directeurRHService.ajouterDirecteurRH(directeurRH));
-    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<DirecteurRHDTO> obtenirDirecteurRH(@PathVariable Long id) {
@@ -36,9 +33,5 @@ public class DirecteurRHController {
         return ResponseEntity.ok(directeurRHService.modifierDirecteurRH(id, directeurRH));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimerDirecteurRH(@PathVariable Long id) {
-        directeurRHService.supprimerDirecteurRH(id);
-        return ResponseEntity.noContent().build();
-    }
+
 }

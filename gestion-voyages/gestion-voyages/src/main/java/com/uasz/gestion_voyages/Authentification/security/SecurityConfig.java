@@ -43,11 +43,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/drc/**").hasRole("DRC")
                         .requestMatchers(FOR_ENSEIGNANT).hasRole("ENSEIGNANT")
                         .requestMatchers(FOR_DRC).hasRole("DRC")
                         .requestMatchers(FOR_DRH).hasRole("DRH")
                         .requestMatchers(FOR_DFC).hasRole("DFC")
-                        .requestMatchers("/api/auth/creer-utilisateur").hasRole("DRC")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

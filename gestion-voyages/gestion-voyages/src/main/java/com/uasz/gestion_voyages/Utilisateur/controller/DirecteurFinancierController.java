@@ -21,10 +21,6 @@ public class DirecteurFinancierController {
         return ResponseEntity.ok(directeurFinancierService.listerDirecteursFinanciers());
     }
 
-    @PostMapping
-    public ResponseEntity<DirecteurFinancierDTO> ajouterDirecteurFinancier(@RequestBody DirecteurFinancier directeurFinancier) {
-        return ResponseEntity.ok(directeurFinancierService.ajouterDirecteurFinancier(directeurFinancier));
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<DirecteurFinancierDTO> obtenirDirecteurFinancier(@PathVariable Long id) {
@@ -36,9 +32,5 @@ public class DirecteurFinancierController {
         return ResponseEntity.ok(directeurFinancierService.modifierDirecteurFinancier(id, directeurFinancier));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimerDirecteurFinancier(@PathVariable Long id) {
-        directeurFinancierService.supprimerDirecteurFinancier(id);
-        return ResponseEntity.noContent().build();
-    }
+
 }

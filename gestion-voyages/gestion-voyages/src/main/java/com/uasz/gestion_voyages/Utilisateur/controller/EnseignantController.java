@@ -21,10 +21,7 @@ public class EnseignantController {
         return ResponseEntity.ok(enseignantService.listerEnseignants());
     }
 
-    @PostMapping
-    public ResponseEntity<EnseignantDTO> ajouterEnseignant(@RequestBody Enseignant enseignant) {
-        return ResponseEntity.ok(enseignantService.ajouterEnseignant(enseignant));
-    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<EnseignantDTO> obtenirEnseignant(@PathVariable Long id) {
@@ -36,9 +33,5 @@ public class EnseignantController {
         return ResponseEntity.ok(enseignantService.modifierEnseignant(id, enseignant));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimerEnseignant(@PathVariable Long id) {
-        enseignantService.supprimerEnseignant(id);
-        return ResponseEntity.noContent().build();
-    }
+
 }
