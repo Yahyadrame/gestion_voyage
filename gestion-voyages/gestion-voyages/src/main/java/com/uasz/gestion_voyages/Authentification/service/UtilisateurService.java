@@ -5,10 +5,14 @@ import com.uasz.gestion_voyages.Authentification.modele.Utilisateur;
 import com.uasz.gestion_voyages.Authentification.repository.RoleRepository;
 import com.uasz.gestion_voyages.Authentification.repository.UtilisateurRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Optional;
 
 @Service
@@ -23,6 +27,14 @@ public class UtilisateurService {
     @Autowired
     private RoleRepository roleRepository;
 
+
+
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Utilisateur utilisateur = utilisateurRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé : " + email));
+
+        return new User(utilisateur.getEmail(), utilisateur.getMotDePasse(), Collections.emptyList());
+    }
     public Utilisateur validerUtilisateur(String email, String password) {
         Optional<Utilisateur> utilisateurOpt = utilisateurRepository.findByEmail(email);
 
@@ -68,6 +80,11 @@ public class UtilisateurService {
 
     public Utilisateur rechercher_Utilisateur(String username) {
         return utilisateurRepository.findUtilisateurByUsername(username);
+    }
+
+    public Role trouverRoleParNom(String nom) {
+        return roleRepository.findRoleByRole(nom)
+                ;
     }
 
 
