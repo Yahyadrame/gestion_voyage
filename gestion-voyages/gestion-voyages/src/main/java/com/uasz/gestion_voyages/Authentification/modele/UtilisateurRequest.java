@@ -20,10 +20,7 @@ public class UtilisateurRequest {
     private String telephone;
     private String role;
 
-    // Getters et Setters
-
-
-
+    // Méthodes pour créer des utilisateurs sans rôle
     public DirecteurRecherche toDirecteurRecherche() {
         DirecteurRecherche directeurRecherche = new DirecteurRecherche();
         directeurRecherche.setNom(this.nom);

@@ -1,6 +1,8 @@
 package com.uasz.gestion_voyages.Utilisateur.controller;
 
+import com.uasz.gestion_voyages.Authentification.modele.Role;
 import com.uasz.gestion_voyages.Authentification.modele.UtilisateurRequest;
+import com.uasz.gestion_voyages.Authentification.service.UtilisateurService;
 import com.uasz.gestion_voyages.Utilisateur.dto.*;
 import com.uasz.gestion_voyages.Utilisateur.modele.*;
 import com.uasz.gestion_voyages.Utilisateur.service.*;
@@ -16,11 +18,16 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/drc")
 public class DirecteurRechercheController {
+    public static final Role ROLE_DRC = new Role("DRC");
+    public static final Role ROLE_ENSEIGNANT = new Role("ENSEIGNANT");
+    public static final Role ROLE_DRH = new Role("DRH");
+    public static final Role ROLE_DFC = new Role("DFC");
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private DirecteurRechercheService directeurRechercheService;
-
+    @Autowired
+    private UtilisateurService utilisateurService;
     @Autowired
     private EnseignantService enseignantService;
 
@@ -110,26 +117,32 @@ public class DirecteurRechercheController {
 
     // === Méthode pour vérifier que l'utilisateur est un DRC ===
 
-
     @PostMapping("/utilisateurs")
     public ResponseEntity<?> creerUtilisateur(@RequestBody UtilisateurRequest utilisateurRequest) {
-
         String motDePasseCrypte = passwordEncoder.encode(utilisateurRequest.getMotDePasse());
         utilisateurRequest.setMotDePasse(motDePasseCrypte);
 
         switch (utilisateurRequest.getRole()) {
             case "DRC":
                 DirecteurRecherche directeurRecherche = utilisateurRequest.toDirecteurRecherche();
-                return ResponseEntity.ok(directeurRechercheService.ajouterDirecteurRecherche(directeurRecherche));
+                DirecteurRechercheDTO directeurRecherche1 = directeurRechercheService.ajouterDirecteurRecherche(directeurRecherche); // Enregistrer l'utilisateur
+                utilisateurService.ajouter_UtilisateurRoles(directeurRecherche, ROLE_DRC); // Associer le rôle
+                return ResponseEntity.ok(directeurRecherche); // Retourner l'utilisateur créé
             case "ENSEIGNANT":
                 Enseignant enseignant = utilisateurRequest.toEnseignant();
-                return ResponseEntity.ok(enseignantService.ajouterEnseignant(enseignant));
+                EnseignantDTO enseignant1 = enseignantService.ajouterEnseignant(enseignant);
+                utilisateurService.ajouter_UtilisateurRoles(enseignant, ROLE_ENSEIGNANT);
+                return ResponseEntity.ok(enseignant);
             case "DRH":
                 DirecteurRH directeurRH = utilisateurRequest.toDirecteurRH();
-                return ResponseEntity.ok(directeurRHService.ajouterDirecteurRH(directeurRH));
+                DirecteurRHDTO directeurRH1 = directeurRHService.ajouterDirecteurRH(directeurRH);
+                utilisateurService.ajouter_UtilisateurRoles(directeurRH, ROLE_DRH);
+                return ResponseEntity.ok(directeurRH);
             case "DFC":
                 DirecteurFinancier directeurFinancier = utilisateurRequest.toDirecteurFinancier();
-                return ResponseEntity.ok(directeurFinancierService.ajouterDirecteurFinancier(directeurFinancier));
+                DirecteurFinancierDTO directeurFinancier1 = directeurFinancierService.ajouterDirecteurFinancier(directeurFinancier);
+                utilisateurService.ajouter_UtilisateurRoles(directeurFinancier, ROLE_DFC);
+                return ResponseEntity.ok(directeurFinancier);
             default:
                 throw new IllegalArgumentException("Rôle non reconnu: " + utilisateurRequest.getRole());
         }
