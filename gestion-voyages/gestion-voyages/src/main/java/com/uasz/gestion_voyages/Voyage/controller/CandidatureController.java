@@ -1,110 +1,60 @@
 package com.uasz.gestion_voyages.Voyage.controller;
 
 import com.uasz.gestion_voyages.Voyage.modele.Candidature;
-import com.uasz.gestion_voyages.Voyage.modele.Documents;
+import com.uasz.gestion_voyages.Voyage.modele.CandidatureNouveau;
+import com.uasz.gestion_voyages.Voyage.modele.CandidatureAncien;
 import com.uasz.gestion_voyages.Voyage.service.CandidatureService;
-import com.uasz.gestion_voyages.Voyage.service.DocumentsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/candidature")
+@RequestMapping("/api/candidatures")
 public class CandidatureController {
 
     @Autowired
     private CandidatureService candidatureService;
 
-    @Autowired
-    private DocumentsService documentsService;
-
-    // Lister toutes les candidatures
-    @GetMapping
-    public ResponseEntity<List<Candidature>> listerCandidatures() {
-        return ResponseEntity.ok(candidatureService.listerCandidatures());
-    }
-
-    // Soumettre une candidature pour un ancien enseignant
-    @PostMapping("/ancien")
-    public ResponseEntity<?> soumettreAncienCandidature(
-            @RequestParam("enseignantId") Long enseignantId,
-
-            @RequestParam("lieu") String lieu,
-            @RequestParam("periode") String periode,
-            @RequestParam("carteEmbarquement") MultipartFile carteEmbarquement,
-            @RequestParam("destinationPrecedente") String destinationPrecedente,
-            @RequestParam("dateDepartPrecedent") Date dateDepartPrecedent,
-            @RequestParam("dateRetourPrecedent") Date dateRetourPrecedent,
-            @RequestParam("rapportVoyagePrecedent") MultipartFile rapportVoyagePrecedent) {
-        try {
-            Candidature candidature = new Candidature();
-
-            candidature.setLieu(lieu);
-            candidature.setPeriode(periode);
-            candidature.setDestinationPrecedente(destinationPrecedente);
-            candidature.setDateDepartPrecedent(dateDepartPrecedent);
-            candidature.setDateRetourPrecedent(dateRetourPrecedent);
-
-            // Enregistrer les fichiers dans Documents
-            Documents carteEmbarquementDoc = documentsService.enregistrerDocument(carteEmbarquement);
-            Documents rapportVoyageDoc = documentsService.enregistrerDocument(rapportVoyagePrecedent);
-
-            // Associer les documents à la candidature
-            candidature.getDocuments().add(carteEmbarquementDoc);
-            candidature.getDocuments().add(rapportVoyageDoc);
-
-            return ResponseEntity.ok(candidatureService.soumettreAncienCandidature(enseignantId, candidature));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    // Soumettre une candidature pour un nouveau enseignant
+    // Soumettre une candidature pour un nouvel enseignant (Seul l'enseignant peut le faire)
     @PostMapping("/nouveau")
-    public ResponseEntity<?> soumettreNouveauCandidature(
-            @RequestParam("enseignantId") Long enseignantId,
-            @RequestParam("email") String email,
-            @RequestParam("lieu") String lieu,
-            @RequestParam("periode") String periode,
-            @RequestParam("arreteTitularisation") MultipartFile arreteTitularisation) {
-        try {
-            Candidature candidature = new Candidature();
-
-            candidature.setLieu(lieu);
-            candidature.setPeriode(periode);
-
-            // Enregistrer le fichier dans Documents
-            Documents arreteTitularisationDoc = documentsService.enregistrerDocument(arreteTitularisation);
-
-            // Associer le document à la candidature
-            candidature.getDocuments().add(arreteTitularisationDoc);
-
-            return ResponseEntity.ok(candidatureService.soumettreNouveauCandidature(enseignantId, candidature));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PreAuthorize("hasRole('ENSEIGNANT')")
+    public ResponseEntity<CandidatureNouveau> soumettreCandidatureNouveau(@RequestBody CandidatureNouveau candidatureNouveau) {
+        CandidatureNouveau nouvelleCandidature = candidatureService.soumettreCandidatureNouveau(candidatureNouveau);
+        return ResponseEntity.ok(nouvelleCandidature);
     }
 
-    // Obtenir une candidature par son ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Candidature> obtenirCandidature(@PathVariable Long id) {
-        return ResponseEntity.ok(candidatureService.obtenirCandidature(id));
+    // Soumettre une candidature pour un ancien enseignant (Seul l'enseignant peut le faire)
+    @PostMapping("/ancien")
+    @PreAuthorize("hasRole('ENSEIGNANT')")
+    public ResponseEntity<CandidatureAncien> soumettreCandidatureAncien(@RequestBody CandidatureAncien candidatureAncien) {
+        CandidatureAncien nouvelleCandidature = candidatureService.soumettreCandidatureAncien(candidatureAncien);
+        return ResponseEntity.ok(nouvelleCandidature);
     }
 
-    // Modifier une candidature
-    @PutMapping("/{id}")
-    public ResponseEntity<Candidature> modifierCandidature(@PathVariable Long id, @RequestBody Candidature candidature) {
-        return ResponseEntity.ok(candidatureService.modifierCandidature(id, candidature));
+    // Lister toutes les candidatures (Seul le DRC peut le faire)
+    @GetMapping
+    @PreAuthorize("hasRole('DRC')")
+    public ResponseEntity<List<Candidature>> listerToutesCandidatures() {
+        List<Candidature> candidatures = candidatureService.listerToutesCandidatures();
+        return ResponseEntity.ok(candidatures);
     }
 
-    // Supprimer une candidature
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> supprimerCandidature(@PathVariable Long id) {
-        candidatureService.supprimerCandidature(id);
-        return ResponseEntity.noContent().build();
+    // Valider une candidature (Seul le DRC peut le faire)
+    @PutMapping("/{id}/valider")
+    @PreAuthorize("hasRole('DRC')")
+    public ResponseEntity<Candidature> validerCandidature(@PathVariable Long id) {
+        Candidature candidature = candidatureService.validerCandidature(id);
+        return ResponseEntity.ok(candidature);
+    }
+
+    // Rejeter une candidature (Seul le DRC peut le faire)
+    @PutMapping("/{id}/rejeter")
+    @PreAuthorize("hasRole('DRC')")
+    public ResponseEntity<Candidature> rejeterCandidature(@PathVariable Long id) {
+        Candidature candidature = candidatureService.rejeterCandidature(id);
+        return ResponseEntity.ok(candidature);
     }
 }

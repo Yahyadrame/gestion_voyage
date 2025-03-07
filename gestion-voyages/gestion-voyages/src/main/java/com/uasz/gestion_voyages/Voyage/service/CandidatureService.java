@@ -1,82 +1,81 @@
 package com.uasz.gestion_voyages.Voyage.service;
 
-import com.uasz.gestion_voyages.Utilisateur.dto.EnseignantDTO;
-import com.uasz.gestion_voyages.Utilisateur.modele.Enseignant;
-import com.uasz.gestion_voyages.Utilisateur.repository.EnseignantRepository;
-import com.uasz.gestion_voyages.Utilisateur.service.EnseignantService;
 import com.uasz.gestion_voyages.Voyage.modele.Candidature;
+import com.uasz.gestion_voyages.Voyage.modele.CandidatureNouveau;
+import com.uasz.gestion_voyages.Voyage.modele.CandidatureAncien;
 import com.uasz.gestion_voyages.Voyage.repository.CandidatureRepository;
+import com.uasz.gestion_voyages.Voyage.repository.CandidatureNouveauRepository;
+import com.uasz.gestion_voyages.Voyage.repository.CandidatureAncienRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CandidatureService {
 
-    @Autowired
-    private EnseignantRepository enseignantRepository;
+    private final CandidatureRepository candidatureRepository;
+    private final CandidatureNouveauRepository candidatureNouveauRepository;
+    private final CandidatureAncienRepository candidatureAncienRepository;
+    private final NotificationService notificationService;
 
     @Autowired
-    private CandidatureRepository candidatureRepository;
+    public CandidatureService(CandidatureRepository candidatureRepository,
+                              CandidatureNouveauRepository candidatureNouveauRepository,
+                              CandidatureAncienRepository candidatureAncienRepository,
+                              NotificationService notificationService) {
+        this.candidatureRepository = candidatureRepository;
+        this.candidatureNouveauRepository = candidatureNouveauRepository;
+        this.candidatureAncienRepository = candidatureAncienRepository;
+        this.notificationService = notificationService;
+    }
 
-    @Autowired
-    private EnseignantService enseignantService;
-
-    // Lister toutes les candidatures
-    public List<Candidature> listerCandidatures() {
-        return candidatureRepository.findAll();
+    // Soumettre une candidature pour un nouvel enseignant
+    public CandidatureNouveau soumettreCandidatureNouveau(CandidatureNouveau candidatureNouveau) {
+        if (enseignantADejaVoyage(candidatureNouveau.getEnseignant().getId())) {
+            throw new IllegalStateException("L'enseignant a déjà voyagé.");
+        }
+        return candidatureNouveauRepository.save(candidatureNouveau);
     }
 
     // Soumettre une candidature pour un ancien enseignant
-    public Candidature soumettreAncienCandidature(Long enseignantId, Candidature candidature) {
-        Enseignant enseignant = enseignantRepository.findById(enseignantId)
-                .orElseThrow(() -> new IllegalArgumentException("Enseignant non trouvé"));
+    public CandidatureAncien soumettreCandidatureAncien(CandidatureAncien candidatureAncien) {
+        return candidatureAncienRepository.save(candidatureAncien);
+    }
 
-        EnseignantDTO enseignantDTO = enseignantService.obtenirEnseignant(enseignantId);
+    // Lister toutes les candidatures
+    public List<Candidature> listerToutesCandidatures() {
+        return candidatureRepository.findAll();
+    }
 
-        if (!enseignantDTO.aDejaVoyage()) {
-            throw new IllegalArgumentException("L'enseignant n'a pas encore voyagé.");
-        }
-
-        candidature.setEnseignant(enseignant);
+    // Valider une candidature
+    public Candidature validerCandidature(Long id) {
+        Candidature candidature = candidatureRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Candidature non trouvée"));
+        candidature.setStatut("VALIDE");
+        notificationService.envoyerNotification(
+                candidature.getEnseignant().getEmail(),
+                "Votre candidature a été validée."
+        );
         return candidatureRepository.save(candidature);
     }
 
-    // Soumettre une candidature pour un nouveau enseignant
-    public Candidature soumettreNouveauCandidature(Long enseignantId, Candidature candidature) {
-        Enseignant enseignant = enseignantRepository.findById(enseignantId)
-                .orElseThrow(() -> new IllegalArgumentException("Enseignant non trouvé"));
-
-        EnseignantDTO enseignantDTO = enseignantService.obtenirEnseignant(enseignantId);
-
-        if (enseignantDTO.aDejaVoyage()) {
-            throw new IllegalArgumentException("L'enseignant a déjà voyagé.");
-        }
-
-        candidature.setEnseignant(enseignant);
+    // Rejeter une candidature
+    public Candidature rejeterCandidature(Long id) {
+        Candidature candidature = candidatureRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Candidature non trouvée"));
+        candidature.setStatut("REJETE");
+        notificationService.envoyerNotification(
+                candidature.getEnseignant().getEmail(),
+                "Votre candidature a été rejetée."
+        );
         return candidatureRepository.save(candidature);
     }
 
-    // Obtenir une candidature par son ID
-    public Candidature obtenirCandidature(Long id) {
-        return candidatureRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Candidature non trouvée."));
-    }
-
-    // Modifier une candidature
-    public Candidature modifierCandidature(Long id, Candidature candidature) {
-        Candidature existingCandidature = obtenirCandidature(id);
-        existingCandidature.setLieu(candidature.getLieu());
-        existingCandidature.setPeriode(candidature.getPeriode());
-        existingCandidature.setDestinationPrecedente(candidature.getDestinationPrecedente());
-        existingCandidature.setDateDepartPrecedent(candidature.getDateDepartPrecedent());
-        existingCandidature.setDateRetourPrecedent(candidature.getDateRetourPrecedent());
-        return candidatureRepository.save(existingCandidature);
-    }
-
-    // Supprimer une candidature
-    public void supprimerCandidature(Long id) {
-        candidatureRepository.deleteById(id);
+    // Vérifier si l'enseignant a déjà voyagé
+    public boolean enseignantADejaVoyage(Long enseignantId) {
+        List<Candidature> candidatures = candidatureRepository.findByEnseignantId(enseignantId);
+        return candidatures.stream().anyMatch(c -> "VALIDE".equals(c.getStatut()));
     }
 }

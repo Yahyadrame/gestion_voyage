@@ -17,6 +17,7 @@ public class UtilisateurRequest {
     private String email;
     private String username;
     private String motDePasse;
+    private String motDePasseEnClair; // Mot de passe en clair (pour l'e-mail)
     private String telephone;
     private String role;
 

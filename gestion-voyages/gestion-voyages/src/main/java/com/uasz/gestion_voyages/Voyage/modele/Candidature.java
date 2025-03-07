@@ -2,45 +2,41 @@ package com.uasz.gestion_voyages.Voyage.modele;
 
 import com.uasz.gestion_voyages.Utilisateur.modele.Enseignant;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-public class Candidature {
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Candidature {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String statut; // EN_ATTENTE, VALIDEE, REFUSEE
-    private Date dateSoumission;
+    private String lieu; // Lieu du voyage d'études
+    private Date dateDepart; // Date de départ
+    private Date dateRetour; // Date de retour
+    private String statut; // Statut de la candidature (ex: "EN_ATTENTE", "VALIDE", "REJETE")
 
-    // Informations sur le voyage
-    private String lieu;
-    private String periode; // Utilisé dans le contrôleur
-    private Date dateDepart;
-    private Date dateRetour;
+    @ManyToOne
+    @JoinColumn(name = "enseignant_id")
+    private Enseignant enseignant; // Enseignant qui soumet la candidature
 
-    // Conditions pour les nouveaux enseignants
-    private boolean titulaire; // true si l'enseignant est titulaire
-    private String arreteTitularisation; // Référence de l'arrêté de titularisation
+    @ManyToOne
+    @JoinColumn(name = "cohorte_id")
+    private Cohorte cohorte; // Cohorte à laquelle la candidature est associée
 
-    // Conditions pour les anciens enseignants
-    private String carteEmbarquement; // Justificatif du précédent voyage
-    private String destinationPrecedente; // Destination du précédent voyage
-    private Date dateDepartPrecedent; // Date de départ du précédent voyage
-    private Date dateRetourPrecedent; // Date de retour du précédent voyage
-    private String rapportVoyagePrecedent; // Rapport du dernier voyage d'étude
+    @OneToMany(mappedBy = "candidature", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Documents> documents; // Documents justificatifs associés à la candidature
 
     @ManyToOne
     @JoinColumn(name = "voyage_id")
     private VoyageEtude voyage;
 
-    @ManyToOne
-    @JoinColumn(name = "enseignant_id")
-    private Enseignant enseignant;
-
-    @OneToMany(mappedBy = "candidature", cascade = CascadeType.ALL)
-    private List<Documents> documents;
 }

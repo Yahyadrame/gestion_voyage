@@ -4,6 +4,7 @@ import com.uasz.gestion_voyages.Voyage.modele.Documents;
 import com.uasz.gestion_voyages.Voyage.service.DocumentsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,27 +16,25 @@ public class DocumentsController {
     @Autowired
     private DocumentsService documentsService;
 
-    @GetMapping
-    public ResponseEntity<List<Documents>> listerDocuments() {
-        return ResponseEntity.ok(documentsService.listerDocuments());
-    }
-
+    // Ajouter un document (Seul l'enseignant peut le faire)
     @PostMapping
+    @PreAuthorize("hasRole('ENSEIGNANT')")
     public ResponseEntity<Documents> ajouterDocument(@RequestBody Documents document) {
-        return ResponseEntity.ok(documentsService.ajouterDocument(document));
+        Documents nouveauDocument = documentsService.ajouterDocument(document);
+        return ResponseEntity.ok(nouveauDocument);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Documents> obtenirDocument(@PathVariable Long id) {
-        return ResponseEntity.ok(documentsService.obtenirDocument(id));
+    // Lister les documents par candidature (Seul l'enseignant ou le DRC peut le faire)
+    @GetMapping("/candidature/{candidatureId}")
+    @PreAuthorize("hasAnyRole('ENSEIGNANT', 'DRC')")
+    public ResponseEntity<List<Documents>> listerDocumentsParCandidature(@PathVariable Long candidatureId) {
+        List<Documents> documents = documentsService.listerDocumentsParCandidature(candidatureId);
+        return ResponseEntity.ok(documents);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Documents> modifierDocument(@PathVariable Long id, @RequestBody Documents document) {
-        return ResponseEntity.ok(documentsService.modifierDocument(id, document));
-    }
-
+    // Supprimer un document (Seul l'enseignant peut le faire)
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ENSEIGNANT')")
     public ResponseEntity<Void> supprimerDocument(@PathVariable Long id) {
         documentsService.supprimerDocument(id);
         return ResponseEntity.noContent().build();

@@ -11,20 +11,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-
-import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    private static final String[] FOR_ENSEIGNANT = {"/api/enseignant/**"};
-    private static final String[] FOR_DRC = {"/api/drc/**"};
-    private static final String[] FOR_DRH = {"/api/drh/**"};
-    private static final String[] FOR_DFC = {"/api/dfc/**"};
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
@@ -41,12 +36,12 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Activer CORS
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Autoriser les requêtes OPTIONS
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/api/drc/**").hasAuthority("DRC")
-                        .requestMatchers(FOR_ENSEIGNANT).hasAuthority("ENSEIGNANT")
-                        .requestMatchers(FOR_DRH).hasAuthority("DRH")
-                        .requestMatchers(FOR_DFC).hasAuthority("DFC")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/login").permitAll() // Autoriser l'accès à l'authentification
+                        .requestMatchers("/api/enseignant/**").hasAuthority("ENSEIGNANT") // Seul l'enseignant
+                        .requestMatchers("/api/drc/**").hasAuthority("DRC") // Seul le DRC
+                        .requestMatchers("/api/drh/**").hasAuthority("DRH") // Seul le DRH
+                        .requestMatchers("/api/dfc/**").hasAuthority("DFC") // Seul le DFC
+                        .anyRequest().authenticated() // Toutes les autres requêtes nécessitent une authentification
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

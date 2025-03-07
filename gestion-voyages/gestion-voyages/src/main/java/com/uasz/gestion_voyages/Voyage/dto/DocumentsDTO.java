@@ -6,7 +6,6 @@ import lombok.Data;
 public class DocumentsDTO {
     private Long id;
     private String nom;
-    private String type;
     private String cheminFichier;
     private Long candidatureId;
 }

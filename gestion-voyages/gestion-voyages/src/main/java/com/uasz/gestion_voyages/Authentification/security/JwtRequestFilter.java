@@ -1,8 +1,6 @@
 package com.uasz.gestion_voyages.Authentification.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
+
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
@@ -31,11 +29,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             try {
-                Claims claims = jwtUtil.    extractAllClaims(token);
+                Claims claims = jwtUtil.extractAllClaims(token);
                 String username = claims.getSubject();
                 String role = (String) claims.get("role"); // Récupérer le rôle (singulier)
 
                 if (username != null && role != null) {
+                    // Créer une autorité basée sur le rôle
                     List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
                     UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                             username, null, authorities);

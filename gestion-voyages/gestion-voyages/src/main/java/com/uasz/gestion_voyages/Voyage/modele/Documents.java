@@ -6,19 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class Documents {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nom;
-    private String type; // PDF, JPEG, etc.
-    private String cheminFichier;
+    private String nom; // Nom du document (ex: "Carte d'embarquement")
+    private String cheminFichier; // Chemin du fichier stocké
 
     @ManyToOne
     @JoinColumn(name = "candidature_id")
-    private Candidature candidature;
+    private Candidature candidature; // Candidature à laquelle le document est associé
 }

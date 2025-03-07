@@ -5,6 +5,7 @@ import com.uasz.gestion_voyages.Utilisateur.modele.Enseignant;
 import com.uasz.gestion_voyages.Utilisateur.service.EnseignantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,11 +25,13 @@ public class EnseignantController {
 
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('ENSEIGNANT')")
     public ResponseEntity<EnseignantDTO> obtenirEnseignant(@PathVariable Long id) {
         return ResponseEntity.ok(enseignantService.obtenirEnseignant(id));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ENSEIGNANT')")
     public ResponseEntity<EnseignantDTO> modifierEnseignant(@PathVariable Long id, @RequestBody Enseignant enseignant) {
         return ResponseEntity.ok(enseignantService.modifierEnseignant(id, enseignant));
     }
